@@ -37,25 +37,18 @@ void ABoidsActor::MolecularDynamics(const float DeltaTime, const FVector pTarget
 	herdDinoPosition += herdDinoVelocity * DeltaTime + herdDinoForce*DeltaTime*DeltaTime / (2.*herdDinoMass);
 	herdDinoOldForce = herdDinoForce;
 	herdDinoForce = GetForces(pTargetPosition, aOtherActors, aObstacles);
-	herdDinoVelocity += (herdDinoForce + herdDinoOldForce)*DeltaTime / (2 * herdDinoMass);
-	SetActorLocation(herdDinoPosition);
-
-	/*//Including alignment of flock and avoidance of obstacles
 	m_pVelocity = herdDinoVelocity;
-	FVector pDesiredVelocity; //desired to help align and avoid obstacles
-	pDesiredVelocity = m_pVelocity+0.1*CalculateAlignmentVector(aOtherActors)+CalculateAvoidanceVector(aObstacles);
+	herdDinoVelocity += (herdDinoForce + herdDinoOldForce)*DeltaTime / (2 * herdDinoMass);
+	SetActorLocation(herdDinoPosition);	
+
+	//Changing actor orientation
 	//Smooth our current rotation towards the desired velocity
 	FQuat pCurrentRotation = m_pVelocity.ToOrientationQuat();
-	FQuat pDesiredRotation = pDesiredVelocity.ToOrientationQuat();
+	FQuat pDesiredRotation = herdDinoVelocity.ToOrientationQuat();
 	FQuat pNewRotation = FQuat::Slerp(pCurrentRotation, pDesiredRotation, m_nTurnSpeed * DeltaTime);
 
-	//Accelerate movement to a max, slow down when turning
-	m_nCurrentSpeed = FMath::Clamp<float>(m_nCurrentSpeed + m_nAcceleration * DeltaTime, 0, m_nFlightSpeed);
-
-	m_pVelocity = pNewRotation * FVector::ForwardVector * m_nCurrentSpeed * DeltaTime;
-	herdDinoVelocity = m_pVelocity;
+	m_pVelocity = pNewRotation * herdDinoPosition;
 	SetActorRotation(FRotationMatrix::MakeFromX(m_pVelocity).Rotator());
-	*/
 }
 
 // Calculating forces with the a couple of random positions for now
@@ -63,6 +56,7 @@ FVector ABoidsActor::GetForces(const FVector pTargetPosition, const TArray<ABoid
 {
 	FVector totalForce;
 	totalForce.X = 0.0;  totalForce.Y = 0.0;  totalForce.Z = 0.0;
+	
 	//Interaction with predator
 	FVector vectorToPredator,forceFromPredator;
 	//predator is at pTargetPosition
@@ -81,10 +75,11 @@ FVector ABoidsActor::GetForces(const FVector pTargetPosition, const TArray<ABoid
 	//can add others later and add them together.
 	totalForce += forceFromPredator;
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("total force pre %e,%e,%e"), totalForce.X, totalForce.Y, totalForce.Z));
+	
 	//force due to other herd dinos
 	FVector vectorToOtherHerdMember, forceFromOtherHerdMember;
 	float distanceToOtherHerdMember, sigma, epsilon, dHerdHerdInteractiondR;
-	sigma = 200.0; epsilon = 1000.0;
+	sigma = 100.0; epsilon = 1000.0;
 	for (int i = 0; i < aOtherActors.Num(); i++)
 	{
 		if (aOtherActors[i] == this)
@@ -98,9 +93,10 @@ FVector ABoidsActor::GetForces(const FVector pTargetPosition, const TArray<ABoid
 		totalForce += forceFromOtherHerdMember;
 	}
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("total force %e,%e,%e"), totalForce.X, totalForce.Y, totalForce.Z));
-	return totalForce;
 	
-	//force due to food source (obstacles)
+	//still to come avoidance of obtacle and attraction to food sources
+	
+	return totalForce;
 	
 }
 
