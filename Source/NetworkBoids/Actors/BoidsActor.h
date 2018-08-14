@@ -57,8 +57,14 @@ private:
 	UPROPERTY(EditAnywhere)
 		float m_nCohesionDistance = 100;
 
+	//  changing cohesion.
 	UPROPERTY(EditAnywhere)
-		float m_nCohesionStrength = 1.0f;
+		//float m_nCohesionStrength = 1000000.0f;  //too far brids began to fly into predator.
+		//float m_nCohesionStrength = 100000.0f;  // Boids separate into what seems to be three groups.
+		//float m_nCohesionStrength = 10000.0f;  //Boids say closer to center of flock.
+		//float m_nCohesionStrength = 1000.0f;  //Boids return to group and begin to form a single cluster, but the flock still explode.
+		//float m_nCohesionStrength = 10.0f;  //Boids begin to cluster, but still leave.
+		float m_nCohesionStrength = 1.0f;   //Origional guess
 
 	UPROPERTY(EditAnywhere)
 		float m_nAvoidanceDistance = 1000;

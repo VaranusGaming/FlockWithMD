@@ -28,10 +28,10 @@ public:
 
 private:
 	UPROPERTY(EditDefaultsOnly)
-		float m_nRadius = 2000.;
+		float m_nRadius = 200.;
 
 	UPROPERTY(EditDefaultsOnly)
-		float m_nSpeed = 0.1;
+		float m_nSpeed = 1.0;
 
 	float m_nCurrentAngle;
 	

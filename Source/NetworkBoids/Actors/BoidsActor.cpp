@@ -61,25 +61,33 @@ FVector ABoidsActor::GetForces(const FVector pTargetPosition, const TArray<ABoid
 	FVector vectorToPredator,forceFromPredator;
 	//predator is at pTargetPosition
 	vectorToPredator = pTargetPosition - herdDinoPosition;
-	float distanceToPredator,forceRange,dRepulsionToPreditordR;
-	forceRange = 10000.0;
+	float distanceToPredator,dRepulsionToPreditordR;
 	distanceToPredator = sqrt(vectorToPredator.X*vectorToPredator.X + vectorToPredator.Y*vectorToPredator.Y + vectorToPredator.Z*vectorToPredator.Z);
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("dino Position %f,%f,%f"), herdDinoPosition.X, herdDinoPosition.Y, herdDinoPosition.Z));
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("predator Position %f,%f,%f"), pTargetPosition.X, pTargetPosition.Y, pTargetPosition.Z));
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("vectorToPredator %f,%f,%f"), vectorToPredator.X, vectorToPredator.Y, vectorToPredator.Z));
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Distance to Predator %f"), distanceToPredator));
-	//force due to the predator (repulsion potential,(ForceRange/distance)^n; derivative is -n(ForceRange/distance)^(n-1) ForceRange/distance^2=-n ForceRange^n/distance^(n+1))
-	dRepulsionToPreditordR = -forceRange/distanceToPredator/distanceToPredator;
-	forceFromPredator = -dRepulsionToPreditordR*(-vectorToPredator / distanceToPredator);
-	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("forceFromPredator %e,%e,%e"), forceFromPredator.X, forceFromPredator.Y, forceFromPredator.Z));
-	//can add others later and add them together.
-	totalForce += forceFromPredator;
+	//force due to the predator (repulsion potential,(forceRange/distance)^n; derivative is -n(ForceRange/distance)^(n-1) ForceRange/distance^2=-n ForceRange^n/distance^(n+1))
+	//float forceRange;
+	//forceRange = 1000.0;  //Original guess, with a group attraction of 100000 birds separated into 3 groups.
+	//forceRange = 10000.0;  //Even this does not make boids move quickly
+	//dRepulsionToPreditordR = -forceRange/distanceToPredator/distanceToPredator;  //n=1
+	//trying linear potential to help the boids move faster.  repulsionToPredator potential = -repulsion*distanceToPredator and the derivative is -forceRange
+	float repulsion;
+	if (distanceToPredator < 5000.0) {  //stops boids that are too far away from seeing predator
+		repulsion = 10.0;
+		dRepulsionToPreditordR = -repulsion;
+		forceFromPredator = -dRepulsionToPreditordR * (-vectorToPredator / distanceToPredator);
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("forceFromPredator %e,%e,%e"), forceFromPredator.X, forceFromPredator.Y, forceFromPredator.Z));
+		//can add others later and add them together.
+		totalForce += forceFromPredator;
+	}
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("total force pre %e,%e,%e"), totalForce.X, totalForce.Y, totalForce.Z));
 	
 	//force due to other herd dinos
 	FVector vectorToOtherHerdMember, forceFromOtherHerdMember;
 	float distanceToOtherHerdMember, sigma, epsilon, dHerdHerdInteractiondR;
-	sigma = 100.0; epsilon = 1000.0;
+	sigma = 200.0; epsilon = 1000.0;
 	for (int i = 0; i < aOtherActors.Num(); i++)
 	{
 		if (aOtherActors[i] == this)
